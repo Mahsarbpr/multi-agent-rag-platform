@@ -1,5 +1,5 @@
 
-from rag_assistant.load_text_pdf_documents import load_documents
+from rag_assistant.document_loader import load_documents
 from rag_assistant.text_splitter import split_documents
 from rag_assistant.vector_store import create_vectorstore, save_vectorstore, load_vectorstore
 from rag_assistant.rag_service import find_answer_to_question

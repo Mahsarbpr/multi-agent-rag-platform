@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from rag_pipeline import RAGPipeline
+from rag_assistant.rag_pipeline import RAGPipeline
 
 # Initialize FastAPI app and RAG pipeline 
 
