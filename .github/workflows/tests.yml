@@ -25,4 +25,8 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest
+          pytest tests
+
+      - name: Show discovered test files
+        run: |
+          find . -name "test_*.py"
