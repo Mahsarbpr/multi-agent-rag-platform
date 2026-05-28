@@ -20,23 +20,25 @@ The system loads PDF/TXT documents, chunks them, creates embeddings, stores them
 - FastAPI backend
 - Swagger API documentation
 - Professional `src/` package structure
-- Unit testing support with pytest
+- Unit and integration testing
+- GitHub Actions CI support
+- Typed API request/response models
 
 ---
 
 # Tech Stack
 
-| Technology            | Purpose                     |
-| --------------------- | --------------------------- |
-| Python                | Main language               |
-| LangChain             | RAG orchestration utilities |
-| FAISS                 | Vector similarity search    |
-| Ollama                | Local LLM serving           |
-| FastAPI               | Backend API                 |
-| Pydantic              | Request/response validation |
-| Sentence Transformers | Embedding generation        |
-| PyPDF                 | PDF parsing                 |
-| Pytest                | Unit testing                |
+| Technology            | Purpose                      |
+| --------------------- | ---------------------------- |
+| Python                | Main language                |
+| LangChain             | RAG orchestration utilities  |
+| FAISS                 | Vector similarity search     |
+| Ollama                | Local LLM serving            |
+| FastAPI               | Backend API                  |
+| Pydantic              | Request/response validation  |
+| Sentence Transformers | Embedding generation         |
+| PyPDF                 | PDF parsing                  |
+| Pytest                | Unit and integration testing |
 
 ---
 
@@ -44,6 +46,10 @@ The system loads PDF/TXT documents, chunks them, creates embeddings, stores them
 
 ```text
 ai-rag-assistant/
+│
+├── .github/
+│   └── workflows/
+│       └── tests.yml
 │
 ├── src/
 │   └── rag_assistant/
@@ -62,7 +68,16 @@ ai-rag-assistant/
 │   └── app.py
 │
 ├── tests/
-│   └── test_index_metadata.py
+│   ├── fixtures/
+│   │   └── sample.txt
+│   │
+│   ├── test_api.py
+│   ├── test_document_loader.py
+│   ├── test_index_metadata.py
+│   ├── test_rag_pipeline.py
+│   ├── test_rag_service.py
+│   ├── test_text_splitter.py
+│   └── test_vector_store.py
 │
 ├── data/
 ├── faiss_index/
@@ -208,6 +223,28 @@ Response:
 
 ---
 
+# Testing Strategy
+
+The project uses multiple layers of testing.
+
+| Test Type         | Purpose                                    |
+| ----------------- | ------------------------------------------ |
+| Unit Tests        | Validate isolated module behavior          |
+| Integration Tests | Validate interactions between components   |
+| API Tests         | Validate FastAPI request/response behavior |
+| Pipeline Tests    | Validate end-to-end orchestration          |
+
+Main test targets include:
+
+- document loading
+- text chunking
+- vector store persistence
+- metadata fingerprinting
+- API validation
+- RAG pipeline orchestration
+
+---
+
 # Setup
 
 ## 1. Create virtual environment
@@ -272,7 +309,7 @@ ollama pull phi3
 uvicorn api.app:app --reload
 ```
 
-Open Swagger docs:
+Open Swagger documentation:
 
 ```text
 http://127.0.0.1:8000/docs
@@ -290,40 +327,90 @@ python main.py
 
 # Running Tests
 
-Install pytest:
-
-```bash
-pip install pytest
-```
-
-Run tests:
+Run all tests:
 
 ```bash
 pytest
 ```
 
+Run tests with coverage:
+
+```bash
+pytest --cov=rag_assistant
+```
+
+Generate HTML coverage report:
+
+```bash
+pytest --cov=rag_assistant --cov-report=html
+```
+
+Open:
+
+```text
+htmlcov/index.html
+```
+
 ---
 
-# Current Design Principles
+# Development Workflow
 
-- Separation of concerns between loading, splitting, vector storage, RAG logic, API, and display
-- Reusable `RAGPipeline` class to hold state such as vector store and LLM instance
-- FAISS persistence to avoid rebuilding embeddings every run
-- Document hash metadata to rebuild the index only when source files change
-- FastAPI layer wraps the RAG pipeline without mixing API logic into core RAG logic
-- Installable Python package architecture using `pyproject.toml`
+Typical development workflow:
+
+```bash
+# activate environment
+.venv\Scripts\activate
+
+# install editable package
+pip install -e .
+
+# run tests
+pytest
+
+# run coverage
+pytest --cov=rag_assistant
+
+# start FastAPI server
+uvicorn api.app:app --reload
+```
 
 ---
 
-# Future Improvements
+# Architecture Principles
+
+The project follows several software engineering principles:
+
+- Separation of concerns
+- Modular package architecture
+- Persistent vector storage
+- Typed API contracts
+- Test-driven validation of core components
+- Reusable orchestration pipeline
+- Clear API/service boundaries
+
+---
+
+# Current Status
+
+Implemented:
+
+- Local RAG pipeline
+- PDF/TXT ingestion
+- FAISS persistence
+- Automatic index rebuild detection
+- FastAPI backend
+- Swagger documentation
+- Installable package architecture
+- Unit and integration tests
+
+Planned:
 
 - Streamlit frontend
 - File upload support
 - Incremental indexing
 - Async inference
 - Conversation memory
-- Multi-user sessions
-- Cloud deployment
-- Better embedding models
-- Hybrid retrieval
-- Evaluation pipeline
+
+```
+
+```
