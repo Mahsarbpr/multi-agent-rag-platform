@@ -1,3 +1,5 @@
+[![Tests](https://github.com/yourusername/ai-rag-assistant/actions/workflows/tests.yml/badge.svg)](https://github.com/mahsarbpr/ai-rag-assistant/actions/workflows/tests.yml)
+
 # AI RAG Assistant
 
 A local Retrieval-Augmented Generation (RAG) application built with Python, LangChain, FAISS, Ollama, and FastAPI.
