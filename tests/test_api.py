@@ -2,8 +2,10 @@ from fastapi.testclient import TestClient
 
 from rag_assistant.api import app as api_app
 
-
 class FakeRAGPipeline:
+    def load_or_build_vectorstore(self) -> None:
+        pass
+
     def ask_question(self, question: str) -> dict:
         return {
             "answer": "fake answer",
@@ -59,3 +61,39 @@ def test_ask_endpoint_rejects_wrong_field():
     response = client.post("/ask", json={"wrong_field": "hello"})
 
     assert response.status_code == 422
+
+def test_upload_txt_file_returns_success(tmp_path, monkeypatch):
+    monkeypatch.setattr(api_app, "rag", FakeRAGPipeline())
+    monkeypatch.setattr(api_app, "DATA_FOLDER", str(tmp_path))
+
+    client = TestClient(api_app.app)
+
+    response = client.post(
+        "/upload",
+        files={
+            "file": (
+                "sample.txt",
+                b"RAG test content",
+                "text/plain",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+
+    response_json = response.json()
+
+    assert response_json["file_name"] == "sample.txt"
+
+    assert (
+        response_json["message"]
+        == "File uploaded successfully. Index update started."
+    )
+
+    uploaded_file = tmp_path / "sample.txt"
+
+    assert uploaded_file.exists()
+
+    assert uploaded_file.read_text(
+        encoding="utf-8"
+    ) == "RAG test content"
