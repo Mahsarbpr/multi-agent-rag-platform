@@ -85,5 +85,5 @@ def upload_document(background_tasks: BackgroundTasks,
 
     return UploadResponse(
         file_name=file_name,
-        message="File uploaded successfully and vectorstore updated.",
+        message="File uploaded successfully. Index update started.",
     )
