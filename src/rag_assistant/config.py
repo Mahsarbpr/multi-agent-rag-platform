@@ -1,4 +1,6 @@
 DATA_FOLDER = "data/sample_docs"
+ALLOWED_FILE_EXTENSIONS = {".pdf", ".txt"}
+
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 LLM_MODEL = "phi3"
 
