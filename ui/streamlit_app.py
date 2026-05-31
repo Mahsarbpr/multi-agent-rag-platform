@@ -7,6 +7,9 @@ import logging
 import os
 from typing import Any
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 
 
@@ -39,7 +42,17 @@ def post_question(question: str) -> dict[str, Any]:
 
 
 def parse_response(response: Response) -> dict[str, Any]:
-    return response.json()
+    try:
+        response_json = response.json()
+    except ValueError:
+        response.raise_for_status()
+        return {}
+
+    if response.status_code >= 400:
+        detail = response_json.get("detail", "Request failed.")
+        raise RuntimeError(detail)
+
+    return response_json
 
 
 def render_upload_section() -> None:
@@ -54,14 +67,24 @@ def render_upload_section() -> None:
         return
 
     if st.button("Upload and Index"):
-        result = post_file(
+        try:
+            result = post_file(
                 file_name=uploaded_file.name,
                 file_bytes=uploaded_file.getvalue(),
                 content_type=uploaded_file.type,
             )
 
-        st.success(result["message"])
-        st.info("Index update started. Please wait a few seconds before asking questions.")
+            st.success(result["message"])
+            st.info("Index update started. Please wait a few seconds before asking questions.")
+
+        except requests.exceptions.RequestException as error:
+            logger.exception("Failed to connect to backend API")
+            st.error(f"Could not connect to backend API: {error}")
+
+        except RuntimeError as error:
+            logger.exception("Upload request failed")
+            st.error(str(error))
+
 
 def render_question_section() -> None:
     st.header("Ask a Question")
@@ -75,13 +98,22 @@ def render_question_section() -> None:
         st.warning("Please enter a question.")
         return
 
-    with st.spinner("Thinking... retrieving relevant context and generating an answer"):
+    try:
+        with st.spinner("Thinking... retrieving relevant context and generating an answer"):
             result = post_question(question.strip())
 
-    st.subheader("Answer")
-    st.write(result["answer"])
+        st.subheader("Answer")
+        st.write(result["answer"])
 
-    render_sources(result.get("sources", []))
+        render_sources(result.get("sources", []))
+
+    except requests.exceptions.RequestException as error:
+        logger.exception("Failed to connect to backend API")
+        st.error(f"Could not connect to backend API: {error}")
+
+    except RuntimeError as error:
+        logger.exception("Question request failed")
+        st.error(str(error))
 
 
 def render_sources(sources: list[dict[str, Any]]) -> None:
