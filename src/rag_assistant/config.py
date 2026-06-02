@@ -1,3 +1,6 @@
+import os
+
+
 DATA_FOLDER = "data/sample_docs"
 ALLOWED_FILE_EXTENSIONS = {".pdf", ".txt"}
 
@@ -10,3 +13,8 @@ TOP_K = 3
 
 FAISS_INDEX_PATH = "faiss_index"
 INDEX_METADATA_PATH = "faiss_index/index_metadata.json"
+
+OLLAMA_BASE_URL = os.getenv(
+    "OLLAMA_BASE_URL",
+    "http://localhost:11434",
+)

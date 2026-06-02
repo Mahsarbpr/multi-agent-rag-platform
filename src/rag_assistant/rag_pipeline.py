@@ -3,7 +3,7 @@ from rag_assistant.document_loader import load_documents
 from rag_assistant.text_splitter import split_documents
 from rag_assistant.vector_store import create_vectorstore, save_vectorstore, load_vectorstore
 from rag_assistant.rag_service import find_answer_to_question
-from rag_assistant.config import DATA_FOLDER, LLM_MODEL, FAISS_INDEX_PATH, INDEX_METADATA_PATH
+from rag_assistant.config import DATA_FOLDER, LLM_MODEL, FAISS_INDEX_PATH, INDEX_METADATA_PATH, OLLAMA_BASE_URL
 from langchain_ollama import OllamaLLM
 from rag_assistant.index_metadata import (
     calculate_data_fingerprint,
@@ -15,12 +15,14 @@ from pathlib import Path
 # RAG Pipeline: Main class to orchestrate the entire Retrieval-Augmented Generation process, including loading documents, 
 # creating/loading vectorstore, and answering questions using the RAG approach. 
 class RAGPipeline:
-    def __init__(self, data_folder: str = DATA_FOLDER, model_name: str = LLM_MODEL):
+    def __init__(self, data_folder: str = DATA_FOLDER, model_name: str = LLM_MODEL, ollama_base_url: str = OLLAMA_BASE_URL):
         self.data_folder = data_folder
         self.vectorstore = None
         self.model_name = model_name
-        self.llm = OllamaLLM(model = self.model_name)
-
+        self.llm = OllamaLLM(
+            model=model_name,
+            base_url=ollama_base_url,
+            )
     def ask_question(self, question: str) -> dict:
         if not self.vectorstore:
             raise ValueError("Vectorstore not created. Please load and process documents first.")
