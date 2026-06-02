@@ -1,0 +1,10 @@
+.git
+.github
+.pytest_cache
+htmlcov
+__pycache__
+*.pyc
+.venv
+.coverage
+faiss_index
+*.egg-info
