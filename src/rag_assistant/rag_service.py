@@ -1,11 +1,13 @@
+from typing import Any
+
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
+
+from rag_assistant.agents import ResearchAgent, AnalysisAgent, EvaluationAgent
+from rag_assistant.config import TOP_K
 from rag_assistant.llm.base_provider import LLMProvider
-from rag_assistant.config import LLM_MODEL, TOP_K
 
-# RAG Service: Retrieve relevant documents, build context, and generate answer
 
-# Retrieve similar documents from vectorstore
 def retrieve_similar_documents(
     vectorstore: FAISS,
     question: str,
@@ -13,7 +15,7 @@ def retrieve_similar_documents(
 ) -> list[Document]:
     return vectorstore.similarity_search(question, k=k)
 
-# Build context from retrieved documents to provide to LLM for answer generation 
+
 def build_context(documents: list[Document]) -> str:
     context_parts = []
 
@@ -31,7 +33,7 @@ def build_context(documents: list[Document]) -> str:
 
     return "\n\n".join(context_parts)
 
-# Build prompt from question and context
+
 def build_prompt(question: str, context: str) -> str:
     return f"""
 You are a helpful assistant.
@@ -50,16 +52,27 @@ Question:
 Answer:
 """
 
-# Generate answer using LLM and the built prompt 
+
 def generate_answer(
     llm: LLMProvider,
     question: str,
     context: str,
 ) -> str:
-    prompt = build_prompt(question, context)
-    return llm.invoke(prompt)
+    analysis_agent = AnalysisAgent(llm)
+    return analysis_agent.run(question, context)
 
-# Main function to find answer to question using RAG approach 
+
+def build_sources(documents: list[Document]) -> list[dict[str, Any]]:
+    return [
+        {
+            "file_name": doc.metadata.get("file_name", "unknown"),
+            "page": doc.metadata.get("page"),
+            "source": doc.metadata.get("source"),
+        }
+        for doc in documents
+    ]
+
+
 def find_answer_to_question(
     vectorstore: FAISS,
     llm: LLMProvider,
@@ -68,20 +81,33 @@ def find_answer_to_question(
 ) -> dict:
     retrieved_docs = retrieve_similar_documents(vectorstore, question, k)
     context = build_context(retrieved_docs)
-    answer = generate_answer(llm, question, context)
+    sources = build_sources(retrieved_docs)
 
-    sources = [
-        {
-            "file_name": doc.metadata.get("file_name", "unknown"),
-            "page": doc.metadata.get("page"),
-            "source": doc.metadata.get("source"),
-        }
-        for doc in retrieved_docs
-    ]
+    research_agent = ResearchAgent()
+    analysis_agent = AnalysisAgent(llm)
+    evaluation_agent = EvaluationAgent(llm)
+
+    research_result = research_agent.run(
+        question=question,
+        context=context,
+        documents=retrieved_docs,
+    )
+
+    answer = analysis_agent.run(
+        question=research_result["question"],
+        context=research_result["context"],
+    )
+
+    evaluation = evaluation_agent.run(
+        question=question,
+        context=context,
+        answer=answer,
+    )
 
     return {
         "question": question,
         "answer": answer,
+        "evaluation": evaluation,
         "sources": sources,
         "retrieved_documents": retrieved_docs,
     }
