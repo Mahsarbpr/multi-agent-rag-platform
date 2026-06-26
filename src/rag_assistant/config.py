@@ -18,3 +18,17 @@ OLLAMA_BASE_URL = os.getenv(
     "OLLAMA_BASE_URL",
     "http://localhost:11434",
 )
+LLM_PROVIDER = os.getenv(
+    "LLM_PROVIDER",
+    "ollama",
+)
+
+OPENAI_MODEL = os.getenv(
+    "OPENAI_MODEL",
+    "gpt-4o-mini",
+)
+
+CLAUDE_MODEL = os.getenv(
+    "CLAUDE_MODEL",
+    "claude-3-5-haiku-latest",
+)

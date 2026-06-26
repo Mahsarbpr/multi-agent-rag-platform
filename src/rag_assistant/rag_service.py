@@ -1,6 +1,6 @@
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
-from langchain_ollama import OllamaLLM
+from rag_assistant.llm.base_provider import LLMProvider
 from rag_assistant.config import LLM_MODEL, TOP_K
 
 # RAG Service: Retrieve relevant documents, build context, and generate answer
@@ -52,7 +52,7 @@ Answer:
 
 # Generate answer using LLM and the built prompt 
 def generate_answer(
-    llm: OllamaLLM,
+    llm: LLMProvider,
     question: str,
     context: str,
 ) -> str:
@@ -62,7 +62,7 @@ def generate_answer(
 # Main function to find answer to question using RAG approach 
 def find_answer_to_question(
     vectorstore: FAISS,
-    llm: OllamaLLM,
+    llm: LLMProvider,
     question: str,
     k: int = TOP_K,
 ) -> dict:
