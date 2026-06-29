@@ -6,22 +6,25 @@ from rag_assistant.llm.base_provider import LLMProvider
 
 
 def create_rag_workflow(llm: LLMProvider):
-    research_agent = ResearchAgent()
     analysis_agent = AnalysisAgent(llm)
     evaluation_agent = EvaluationAgent(llm)
 
     def run_research(state: GraphState) -> GraphState:
+        research_agent = ResearchAgent(
+            llm=llm,
+            vectorstore=state["vectorstore"],
+        )
+
         research_result = research_agent.run(
             question=state["question"],
-            context=state["context"],
-            documents=state["documents"],
         )
 
         return {
             **state,
-            "question": research_result["question"],
-            "context": research_result["context"],
             "documents": research_result["documents"],
+            "context": research_result["context"],
+            "sources": research_result["sources"],
+            "tool_used": research_result["tool_used"],
         }
 
     def run_analysis(state: GraphState) -> GraphState:
