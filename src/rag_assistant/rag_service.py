@@ -3,8 +3,9 @@ from typing import Any
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
 
-from rag_assistant.agents import ResearchAgent, AnalysisAgent, EvaluationAgent
+from rag_assistant.agents import AnalysisAgent
 from rag_assistant.config import TOP_K
+from rag_assistant.graph import create_rag_workflow
 from rag_assistant.llm.base_provider import LLMProvider
 
 
@@ -83,31 +84,23 @@ def find_answer_to_question(
     context = build_context(retrieved_docs)
     sources = build_sources(retrieved_docs)
 
-    research_agent = ResearchAgent()
-    analysis_agent = AnalysisAgent(llm)
-    evaluation_agent = EvaluationAgent(llm)
+    workflow = create_rag_workflow(llm)
 
-    research_result = research_agent.run(
-        question=question,
-        context=context,
-        documents=retrieved_docs,
-    )
+    initial_state = {
+        "question": question,
+        "context": context,
+        "documents": retrieved_docs,
+        "answer": "",
+        "evaluation": "",
+        "sources": sources,
+    }
 
-    answer = analysis_agent.run(
-        question=research_result["question"],
-        context=research_result["context"],
-    )
-
-    evaluation = evaluation_agent.run(
-        question=question,
-        context=context,
-        answer=answer,
-    )
+    result = workflow.invoke(initial_state)
 
     return {
         "question": question,
-        "answer": answer,
-        "evaluation": evaluation,
-        "sources": sources,
+        "answer": result["answer"],
+        "evaluation": result["evaluation"],
+        "sources": result["sources"],
         "retrieved_documents": retrieved_docs,
     }
